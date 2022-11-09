@@ -369,11 +369,11 @@ public class HerishefBot extends TelegramLongPollingBot {
                         "Для любознательных он оставил информацию о том, как я устроен внутри:\n" +
                         "<b>github:</b> https://github.com/zzzukin/herishaf-tg-bot.git\n" +
                         "А так же, информацию о том, что хранит мой разум (PostgreSQL):\n" +
-                        "<b>Host:</b> ec2-54-228-32-29.eu-west-1.compute.amazonaws.com\n" +
-                        "<b>Database:</b> dbb51r25o3g2dm\n" +
-                        "<b>User:</b> ksdajtrjehfehl\n" +
+                        "<b>Host:</b> ec2-34-248-169-69.eu-west-1.compute.amazonaws.com\n" +
+                        "<b>Database:</b> d9o8d6ee11l4l2\n" +
+                        "<b>User:</b> fjxbifvcluswan\n" +
                         "<b>Port:</b> 5432\n" +
-                        "<b>Password:</b> 3115791733bc6525c8f7af6dae083aa7456dee4d2a6e7cc8034ab477d2dc3fdf"
+                        "<b>Password:</b> 4d8b1f91a71d581a4b8f42f4664e8429071cf50bf120c34652db941682d7f670"
                 ,
                 Emoji.WAVING_HAND,
                 Emoji.SMILING_FACE_WITH_HALO,
