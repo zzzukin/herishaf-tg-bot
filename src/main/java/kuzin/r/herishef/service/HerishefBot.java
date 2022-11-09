@@ -367,7 +367,7 @@ public class HerishefBot extends TelegramLongPollingBot {
                         "добра к тебе и плодородна, ок?%s\n\n" +
                         "<b>P.S.</b> Кстати у мнея же есть создатель - @zzzukin\n" +
                         "Для любознательных он оставил информацию о том, как я устроен внутри:\n" +
-                        "<b>github:</b> https://github.com/zzzukin/FirstZzzukinBot\n" +
+                        "<b>github:</b> https://github.com/zzzukin/herishaf-tg-bot.git\n" +
                         "А так же, информацию о том, что хранит мой разум (PostgreSQL):\n" +
                         "<b>Host:</b> ec2-54-228-32-29.eu-west-1.compute.amazonaws.com\n" +
                         "<b>Database:</b> dbb51r25o3g2dm\n" +
