@@ -1,4 +1,4 @@
-package kuzin.r.herishef.consts;
+package kuzin.r.heryshaf.consts;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 

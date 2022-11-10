@@ -1,6 +1,6 @@
-package kuzin.r.herishef.repository;
+package kuzin.r.heryshaf.repository;
 
-import kuzin.r.herishef.model.UserData;
+import kuzin.r.heryshaf.model.UserData;
 import org.springframework.data.repository.CrudRepository;
 
 public interface UserRepository extends CrudRepository<UserData, Long> {

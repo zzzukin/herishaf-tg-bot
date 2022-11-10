@@ -1,7 +1,7 @@
-package kuzin.r.herishef.repository;
+package kuzin.r.heryshaf.repository;
 
 
-import kuzin.r.herishef.model.WeatherData;
+import kuzin.r.heryshaf.model.WeatherData;
 import org.springframework.data.repository.CrudRepository;
 
 import javax.transaction.Transactional;

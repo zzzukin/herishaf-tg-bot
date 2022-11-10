@@ -1,4 +1,4 @@
-package kuzin.r.herishef.consts;
+package kuzin.r.heryshaf.consts;
 
 import com.vdurmont.emoji.EmojiParser;
 

@@ -1,6 +1,6 @@
-package kuzin.r.herishef.service;
+package kuzin.r.heryshaf.service;
 
-import kuzin.r.herishef.model.WaterLevel;
+import kuzin.r.heryshaf.model.WaterLevel;
 
 public interface WaterLevelService {
      WaterLevel getWaterLevel();

@@ -1,4 +1,4 @@
-package kuzin.r.herishef.service;
+package kuzin.r.heryshaf.service;
 
 import org.json.JSONObject;
 

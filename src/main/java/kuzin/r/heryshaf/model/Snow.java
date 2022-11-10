@@ -1,4 +1,4 @@
-package kuzin.r.herishef.model;
+package kuzin.r.heryshaf.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -8,11 +8,11 @@ import javax.persistence.Embeddable;
 
 @Data
 @Embeddable
-public class Rain {
-    @Column(name="rain_1h")
+public class Snow {
+    @Column(name="snow_1h")
     @JsonProperty("1h")
     private int lastOneHour;
-    @Column(name="rain_3h")
+    @Column(name="snow_3h")
     @JsonProperty("3h")
     private int lastThreeHour;
 }

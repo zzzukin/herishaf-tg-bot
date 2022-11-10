@@ -1,4 +1,4 @@
-package kuzin.r.herishef.config;
+package kuzin.r.heryshaf.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;

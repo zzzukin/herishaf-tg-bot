@@ -1,12 +1,12 @@
-package kuzin.r.herishef.service;
+package kuzin.r.heryshaf.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kuzin.r.herishef.config.BotConfig;
-import kuzin.r.herishef.consts.Emoji;
-import kuzin.r.herishef.consts.Result;
-import kuzin.r.herishef.model.*;
-import kuzin.r.herishef.repository.UserRepository;
-import kuzin.r.herishef.repository.WeatherRepository;
+import kuzin.r.heryshaf.config.BotConfig;
+import kuzin.r.heryshaf.consts.Emoji;
+import kuzin.r.heryshaf.consts.Result;
+import kuzin.r.heryshaf.model.*;
+import kuzin.r.heryshaf.repository.UserRepository;
+import kuzin.r.heryshaf.repository.WeatherRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -35,7 +35,7 @@ import java.util.List;
 @Slf4j
 @Component
 @EnableScheduling
-public class HerishefBot extends TelegramLongPollingBot {
+public class HeryshafBot extends TelegramLongPollingBot {
 
     @Autowired
     WeatherRepository weatherRepository;
@@ -51,7 +51,7 @@ public class HerishefBot extends TelegramLongPollingBot {
     private WeatherData lastSavedData = new WeatherData();
     private Date waitLocationTimer = new Date();
 
-    public HerishefBot(BotConfig config) throws TelegramApiException {
+    public HeryshafBot(BotConfig config) throws TelegramApiException {
         this.config = config;
         List<BotCommand> botCommands = new ArrayList<>();
         botCommands.add(new BotCommand("/help", "помощь"));
@@ -265,9 +265,9 @@ public class HerishefBot extends TelegramLongPollingBot {
         SendMessage sendMessage = getSendMessage(message.getChatId());
         sendMessage.setText(String.format("Куааа... куааа... куааа...%s%s%s " +
                         "В общем есть небольшое обстоятельство. " +
-                        "На данный момент Дминтрий Кузин @da_kuzin%s " +
+                        "На данный момент Дмитрий Кузин @da_kuzin%s " +
                         "все еще обучает меня делать предсказания. Нейронка там..." +
-                        "туда сюда... Но я уверен, что скоро научусь этому и обязательно " +
+                        "туда, сюда... Но я уверен, что скоро научусь этому и обязательно " +
                         "дам тебе знать. Мы обязательно еще это отметим%s%s " +
                         "А пока, смотри, что я умею: /help",
                 Emoji.CLOWN_FACE,
@@ -367,7 +367,7 @@ public class HerishefBot extends TelegramLongPollingBot {
                         "добра к тебе и плодородна, ок?%s\n\n" +
                         "<b>P.S.</b> Кстати у мнея же есть создатель - @zzzukin\n" +
                         "Для любознательных он оставил информацию о том, как я устроен внутри:\n" +
-                        "<b>github:</b> https://github.com/zzzukin/herishaf-tg-bot.git\n" +
+                        "<b>github:</b> https://github.com/zzzukin/heryshaf-tg-bot.git\n" +
                         "А так же, информацию о том, что хранит мой разум (PostgreSQL):\n" +
                         "<b>Host:</b> ec2-34-248-169-69.eu-west-1.compute.amazonaws.com\n" +
                         "<b>Database:</b> d9o8d6ee11l4l2\n" +

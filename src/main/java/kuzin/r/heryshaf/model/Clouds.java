@@ -1,4 +1,4 @@
-package kuzin.r.herishef.model;
+package kuzin.r.heryshaf.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

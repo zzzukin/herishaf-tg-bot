@@ -1,6 +1,6 @@
-package kuzin.r.herishef.service;
+package kuzin.r.heryshaf.service;
 
-import kuzin.r.herishef.model.WaterLevel;
+import kuzin.r.heryshaf.model.WaterLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

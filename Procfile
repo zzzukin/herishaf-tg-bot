@@ -1,1 +1,1 @@
-worker: java -jar ./target/herishef-tg-bot-0.0.1-SNAPSHOT.jar
+worker: java -jar ./target/heryshaf-tg-bot-0.0.1-SNAPSHOT.jar

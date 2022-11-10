@@ -1,13 +1,13 @@
-package kuzin.r.herishef;
+package kuzin.r.heryshaf;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HerishefTgBotApplication {
+public class HeryshafTgBotApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(HerishefTgBotApplication.class, args);
+		SpringApplication.run(HeryshafTgBotApplication.class, args);
 	}
 
 }

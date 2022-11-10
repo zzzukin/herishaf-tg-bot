@@ -1,6 +1,6 @@
-package kuzin.r.herishef.config;
+package kuzin.r.heryshaf.config;
 
-import kuzin.r.herishef.service.HerishefBot;
+import kuzin.r.heryshaf.service.HeryshafBot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -12,7 +12,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @Component
 public class BotInitializer {
     @Autowired
-    private HerishefBot bot;
+    private HeryshafBot bot;
 
     @EventListener({ContextRefreshedEvent.class})
     public void init() throws TelegramApiException {
