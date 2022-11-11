@@ -22,6 +22,9 @@ public enum Emoji {
     MAN_SHRUGGING("🤷‍"),
     FACE_WITH_ROLLING_EYES("🙄"),
     SMILING_FACE_WITH_HALO("😇"),
+    GRINNING_FACE("😀"),
+    LOUDLY_CRYING_FACE("😭"),
+    CRYING_FACE("😢"),
     PAPERCLIP("📎");
 
 

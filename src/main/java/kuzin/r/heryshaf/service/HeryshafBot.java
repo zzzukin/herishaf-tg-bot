@@ -47,9 +47,9 @@ public class HeryshafBot extends TelegramLongPollingBot {
     WaterLevelService waterLevelService;
 
     private final BotConfig config;
-
     private WeatherData lastSavedData = new WeatherData();
     private Date waitLocationTimer = new Date();
+    private Date waitFishingAnswerTimer = new Date();
 
     public HeryshafBot(BotConfig config) throws TelegramApiException {
         this.config = config;
@@ -97,7 +97,7 @@ public class HeryshafBot extends TelegramLongPollingBot {
                     aboutCommandHandler(message);
                     break;
                 default:
-                    unsupportedCommandHandler(message);
+                    phraseHandler(message);
             }
         }
 
@@ -124,8 +124,8 @@ public class HeryshafBot extends TelegramLongPollingBot {
                     log.info("Add result author: {}", author);
                     saveData(data);
 
-                    waitLocationTimer = new Date();
                     execute(editMessageText);
+                    waitLocationTimer = new Date();
                 }
             }
         }
@@ -219,14 +219,14 @@ public class HeryshafBot extends TelegramLongPollingBot {
         return editMessageText;
     }
 
-             //      +--------------------sec (0 - 59)
-             //      |  +---------------- minute (0 - 59)
-             //      |  |  +------------- hour (0 - 23)
-             //      |  |  |  +---------- day of month (1 - 31)
-             //      |  |  |  |  +------- month (1 - 12)
-             //      |  |  |  |  |  +---- day of week (0 - 6) (Sunday=0 or 7)
-             //      |  |  |  |  |  |
-             //      *  *  *  *  *  *  command to be executed
+    //      +--------------------sec (0 - 59)
+    //      |  +---------------- minute (0 - 59)
+    //      |  |  +------------- hour (0 - 23)
+    //      |  |  |  +---------- day of month (1 - 31)
+    //      |  |  |  |  +------- month (1 - 12)
+    //      |  |  |  |  |  +---- day of week (0 - 6) (Sunday=0 or 7)
+    //      |  |  |  |  |  |
+    //      *  *  *  *  *  *  command to be executed
     @Scheduled(cron = "${bot.reminder.mes.date}", zone = "Europe/Moscow")
     private void sendReminderMessage() throws TelegramApiException {
         Iterable<UserData> users = userRepository.findAll();
@@ -236,7 +236,9 @@ public class HeryshafBot extends TelegramLongPollingBot {
                     Emoji.SLIGHTLY_SMILING_FACE,
                     Emoji.FISH
             ));
+
             execute(sendMessage);
+            waitFishingAnswerTimer = new Date();
         }
     }
 
@@ -389,12 +391,30 @@ public class HeryshafBot extends TelegramLongPollingBot {
         execute(sendMessage);
     }
 
-    private void unsupportedCommandHandler(Message message) throws TelegramApiException {
+    private void phraseHandler(Message message) throws TelegramApiException {
         SendMessage sendMessage = getSendMessage(message.getChatId());
-        sendMessage.setText(String.format("Привет, %s, %s, %s",
-                message.getChat().getFirstName(),
-                message.getText(),
-                Emoji.UPSIDE_DOWN_FACE));
+        String phrase = message.getText().toLowerCase();
+
+        if ((new Date()).getTime() - waitFishingAnswerTimer.getTime() < (1000 * 60 * 2)) {
+            if ("да".equals(phrase)) {
+                sendMessage.setText(String.format("Отлично, жду результатов%s%s%s",
+                        Emoji.GRINNING_FACE,
+                        Emoji.FISHING_POLE_AND_FISH,
+                        Emoji.PARTYING_FACE
+                ));
+            } else if ("нет".equals(phrase)) {
+                sendMessage.setText(String.format("Печалька%s",
+                        Emoji.CRYING_FACE
+                ));
+            }
+        }
+        else {
+            sendMessage.setText(String.format("Привет, %s, %s %s?",
+                    message.getChat().getFirstName(),
+                    message.getText(),
+                    Emoji.UPSIDE_DOWN_FACE));
+        }
+
         execute(sendMessage);
     }
 }
