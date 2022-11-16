@@ -371,11 +371,11 @@ public class HeryshafBot extends TelegramLongPollingBot {
                         "Для любознательных он оставил информацию о том, как я устроен внутри:\n" +
                         "<b>github:</b> https://github.com/zzzukin/heryshaf-tg-bot.git\n" +
                         "А так же, информацию о том, что хранит мой разум (PostgreSQL):\n" +
-                        "<b>Host:</b> ec2-34-248-169-69.eu-west-1.compute.amazonaws.com\n" +
-                        "<b>Database:</b> d9o8d6ee11l4l2\n" +
-                        "<b>User:</b> fjxbifvcluswan\n" +
+                        "<b>Host:</b> ec2-52-49-201-212.eu-west-1.compute.amazonaws.com\n" +
+                        "<b>Database:</b> d1tce789asg0h9\n" +
+                        "<b>User:</b> ygnjwzavmyfxbb\n" +
                         "<b>Port:</b> 5432\n" +
-                        "<b>Password:</b> 4d8b1f91a71d581a4b8f42f4664e8429071cf50bf120c34652db941682d7f670"
+                        "<b>Password:</b> 3853c8bf3c2b96abfc104f33c177dd9b85f68613e0187e36730c71304a0529e8"
                 ,
                 Emoji.WAVING_HAND,
                 Emoji.SMILING_FACE_WITH_HALO,
