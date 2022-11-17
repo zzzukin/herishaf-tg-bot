@@ -50,7 +50,9 @@ public class HeryshafBot extends TelegramLongPollingBot {
 
     private final BotConfig config;
     private WeatherData lastSavedData = new WeatherData();
-    private Expectation expectation = Expectation.ANY;
+    private Date waitLocationTimer = new Date();
+    private Date waitFishingAnswerTimer = new Date();
+//    private Expectation expectation = Expectation.ANY;
 
     public HeryshafBot(BotConfig config) throws TelegramApiException {
         this.config = config;
@@ -126,13 +128,13 @@ public class HeryshafBot extends TelegramLongPollingBot {
                     saveData(data);
 
                     execute(editMessageText);
-                    expectation = Expectation.LOCATION;
+                    waitLocationTimer = new Date();
                 }
             }
         }
 
         if (update.hasMessage() && message.getLocation() != null) {
-            if (expectation.equals(Expectation.FISHING)) {
+            if ((new Date()).getTime() - waitLocationTimer.getTime() < (1000 * 60 * 2)) {
                 Location location = message.getLocation();
                 WeatherData data = loadData();
                 ResultLocation resultLocation = new ResultLocation(location.getLongitude(), location.getLongitude());
@@ -146,7 +148,6 @@ public class HeryshafBot extends TelegramLongPollingBot {
                         Emoji.WINKING_FACE
                 ));
 
-                expectation = Expectation.ANY;
                 execute(sendMessage);
             }
         }
@@ -240,7 +241,7 @@ public class HeryshafBot extends TelegramLongPollingBot {
             ));
 
             execute(sendMessage);
-            expectation = Expectation.FISHING;
+            waitFishingAnswerTimer = new Date();
         }
     }
 
@@ -397,7 +398,7 @@ public class HeryshafBot extends TelegramLongPollingBot {
         SendMessage sendMessage = getSendMessage(message.getChatId());
         String phrase = message.getText().toLowerCase();
 
-        if (expectation.equals(Expectation.FISHING)) {
+        if ((new Date()).getTime() - waitFishingAnswerTimer.getTime() < (1000 * 60 * 2 * 60)) {
             if (Phrase.POSITIVE.get().contains(phrase)) {
                 sendMessage.setText(String.format("Отлично, жду результатов%s%s%s",
                         Emoji.GRINNING_FACE,
@@ -409,7 +410,6 @@ public class HeryshafBot extends TelegramLongPollingBot {
                         Emoji.CRYING_FACE
                 ));
             }
-            expectation = Expectation.ANY;
         } else {
             sendMessage.setText(String.format("Привет, %s, %s %s?",
                     message.getChat().getFirstName(),
