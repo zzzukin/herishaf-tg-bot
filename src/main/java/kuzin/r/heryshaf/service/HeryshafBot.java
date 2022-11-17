@@ -2,7 +2,9 @@ package kuzin.r.heryshaf.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kuzin.r.heryshaf.config.BotConfig;
+import kuzin.r.heryshaf.consts.Expectation;
 import kuzin.r.heryshaf.consts.Emoji;
+import kuzin.r.heryshaf.consts.Phrase;
 import kuzin.r.heryshaf.consts.Result;
 import kuzin.r.heryshaf.model.*;
 import kuzin.r.heryshaf.repository.UserRepository;
@@ -48,8 +50,7 @@ public class HeryshafBot extends TelegramLongPollingBot {
 
     private final BotConfig config;
     private WeatherData lastSavedData = new WeatherData();
-    private Date waitLocationTimer = new Date();
-    private Date waitFishingAnswerTimer = new Date();
+    private Expectation expectation = Expectation.ANY;
 
     public HeryshafBot(BotConfig config) throws TelegramApiException {
         this.config = config;
@@ -125,13 +126,13 @@ public class HeryshafBot extends TelegramLongPollingBot {
                     saveData(data);
 
                     execute(editMessageText);
-                    waitLocationTimer = new Date();
+                    expectation = Expectation.LOCATION;
                 }
             }
         }
 
         if (update.hasMessage() && message.getLocation() != null) {
-            if ((new Date()).getTime() - waitLocationTimer.getTime() < (1000 * 60 * 2)) {
+            if (expectation.equals(Expectation.FISHING)) {
                 Location location = message.getLocation();
                 WeatherData data = loadData();
                 ResultLocation resultLocation = new ResultLocation(location.getLongitude(), location.getLongitude());
@@ -145,6 +146,7 @@ public class HeryshafBot extends TelegramLongPollingBot {
                         Emoji.WINKING_FACE
                 ));
 
+                expectation = Expectation.ANY;
                 execute(sendMessage);
             }
         }
@@ -238,7 +240,7 @@ public class HeryshafBot extends TelegramLongPollingBot {
             ));
 
             execute(sendMessage);
-            waitFishingAnswerTimer = new Date();
+            expectation = Expectation.FISHING;
         }
     }
 
@@ -395,20 +397,20 @@ public class HeryshafBot extends TelegramLongPollingBot {
         SendMessage sendMessage = getSendMessage(message.getChatId());
         String phrase = message.getText().toLowerCase();
 
-        if ((new Date()).getTime() - waitFishingAnswerTimer.getTime() < (1000 * 60 * 2)) {
-            if ("да".equals(phrase)) {
+        if (expectation.equals(Expectation.FISHING)) {
+            if (Phrase.POSITIVE.get().contains(phrase)) {
                 sendMessage.setText(String.format("Отлично, жду результатов%s%s%s",
                         Emoji.GRINNING_FACE,
                         Emoji.FISHING_POLE_AND_FISH,
                         Emoji.PARTYING_FACE
                 ));
-            } else if ("нет".equals(phrase)) {
+            } else if (Phrase.NEGATIVE.get().contains(phrase)) {
                 sendMessage.setText(String.format("Печалька%s",
                         Emoji.CRYING_FACE
                 ));
             }
-        }
-        else {
+            expectation = Expectation.ANY;
+        } else {
             sendMessage.setText(String.format("Привет, %s, %s %s?",
                     message.getChat().getFirstName(),
                     message.getText(),
