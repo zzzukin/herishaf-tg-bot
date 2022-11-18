@@ -2,8 +2,8 @@ package kuzin.r.heryshaf.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kuzin.r.heryshaf.config.BotConfig;
-import kuzin.r.heryshaf.consts.Expectation;
 import kuzin.r.heryshaf.consts.Emoji;
+import kuzin.r.heryshaf.consts.Expectation;
 import kuzin.r.heryshaf.consts.Phrase;
 import kuzin.r.heryshaf.consts.Result;
 import kuzin.r.heryshaf.model.*;
@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static kuzin.r.heryshaf.consts.Expectation.*;
+
 @Slf4j
 @Component
 @EnableScheduling
@@ -50,10 +52,9 @@ public class HeryshafBot extends TelegramLongPollingBot {
 
     private final BotConfig config;
     private WeatherData lastSavedData = new WeatherData();
-    private Date waitLocationTimer = new Date();
-    private Date waitFishingAnswerTimer = new Date();
-//    private Expectation expectation = Expectation.ANY;
+    private Expectation expectation = NOTHING;
 
+    @Autowired
     public HeryshafBot(BotConfig config) throws TelegramApiException {
         this.config = config;
         List<BotCommand> botCommands = new ArrayList<>();
@@ -104,53 +105,67 @@ public class HeryshafBot extends TelegramLongPollingBot {
             }
         }
 
+        if (expectation.equals(LOCATION)) {
+            if (update.hasMessage() && message.getLocation() != null) {
+                resultLocationHandler(message);
+            }
+        }
+
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
-            String callbackQueryData = callbackQuery.getData();
-            for (Result result : Result.values()) {
-                if (callbackQueryData.equals(result.name())) {
-                    EditMessageText editMessageText = getEditMessageText(callbackQuery.getMessage());
-                    editMessageText.setText(String.format("Твой результат сегодня - %s! " +
-                                    "Спасибо тебе мой друг за ответ. " +
-                                    "Теперь укажи мне, пожалуйста, местоположение%s (нажми %s " +
-                                    "снизу справа и выбери 'location')",
-                            result.getText(),
-                            Emoji.WINKING_FACE,
-                            Emoji.PAPERCLIP
-                    ));
-
-                    updateData(getWeatherData());
-                    WeatherData data = loadData();
-                    data.setResult(result.getText());
-                    String author = callbackQuery.getMessage().getChat().getFirstName();
-                    data.setResultAuthor(author);
-                    log.info("Add result author: {}", author);
-                    saveData(data);
-
-                    execute(editMessageText);
-                    waitLocationTimer = new Date();
-                }
+            resultCallbackHandler(callbackQuery);
+            if (!expectation.equals(NOTHING)) {
+                return;
             }
         }
 
-        if (update.hasMessage() && message.getLocation() != null) {
-            if ((new Date()).getTime() - waitLocationTimer.getTime() < (1000 * 60 * 2)) {
-                Location location = message.getLocation();
-                WeatherData data = loadData();
-                ResultLocation resultLocation = new ResultLocation(location.getLongitude(), location.getLongitude());
-                data.setResultLocation(resultLocation);
-                log.info("Add result location: {}", resultLocation);
-                saveData(data);
+        expectation = NOTHING;
+    }
 
-                SendMessage sendMessage = getSendMessage(message.getChatId());
-                sendMessage.setText(String.format("Хорошо, %s, я запомнил%s",
-                        message.getChat().getFirstName(),
-                        Emoji.WINKING_FACE
+    private void resultCallbackHandler(CallbackQuery callbackQuery) throws TelegramApiException, IOException {
+        String callbackQueryData = callbackQuery.getData();
+        for (Result result : Result.values()) {
+            if (callbackQueryData.equals(result.name())) {
+                EditMessageText editMessageText = getEditMessageText(callbackQuery.getMessage());
+                editMessageText.setText(String.format("Твой результат сегодня - %s! " +
+                                "Спасибо тебе мой друг за ответ. " +
+                                "Теперь укажи мне, пожалуйста, местоположение%s (нажми %s " +
+                                "снизу справа и выбери 'location')",
+                        result.getText(),
+                        Emoji.WINKING_FACE,
+                        Emoji.PAPERCLIP
                 ));
 
-                execute(sendMessage);
+                updateData(getWeatherData());
+                WeatherData data = loadData();
+                data.setResult(result.getText());
+                String author = callbackQuery.getMessage().getChat().getFirstName();
+                data.setResultAuthor(author);
+                log.info("Add result author: {}", author);
+                saveData(data);
+
+                execute(editMessageText);
+                expectation = LOCATION;
+                break;
             }
         }
+    }
+
+    private void resultLocationHandler(Message message) throws TelegramApiException {
+        Location location = message.getLocation();
+        WeatherData data = loadData();
+        ResultLocation resultLocation = new ResultLocation(location.getLongitude(), location.getLongitude());
+        data.setResultLocation(resultLocation);
+        log.info("Add result location: {}", resultLocation);
+        saveData(data);
+
+        SendMessage sendMessage = getSendMessage(message.getChatId());
+        sendMessage.setText(String.format("Хорошо, %s, я запомнил%s",
+                message.getChat().getFirstName(),
+                Emoji.WINKING_FACE
+        ));
+
+        execute(sendMessage);
     }
 
     //@Scheduled(cron = "* */${bot.update.data.time} * * * *", zone = "Europe/Moscow")
@@ -158,6 +173,29 @@ public class HeryshafBot extends TelegramLongPollingBot {
     public void updateDataBySchedule() throws IOException {
         log.info("Update data by scheduler {}", new Date());
         updateData(getWeatherData());
+    }
+
+    //      +--------------------sec (0 - 59)
+    //      |  +---------------- minute (0 - 59)
+    //      |  |  +------------- hour (0 - 23)
+    //      |  |  |  +---------- day of month (1 - 31)
+    //      |  |  |  |  +------- month (1 - 12)
+    //      |  |  |  |  |  +---- day of week (0 - 6) (Sunday=0 or 7)
+    //      |  |  |  |  |  |
+    //      *  *  *  *  *  *  command to be executed
+    @Scheduled(cron = "${bot.reminder.mes.date}", zone = "Europe/Moscow")
+    private void sendReminderMessage() throws TelegramApiException {
+        Iterable<UserData> users = userRepository.findAll();
+        for (UserData user : users) {
+            SendMessage sendMessage = getSendMessage(user.getChatId());
+            sendMessage.setText(String.format("Привет, как дела? Поедешь на рыбалку завтра? %s%s",
+                    Emoji.SLIGHTLY_SMILING_FACE,
+                    Emoji.FISH
+            ));
+
+            execute(sendMessage);
+            expectation = FISHING;
+        }
     }
 
     private void updateData(WeatherData data) {
@@ -220,29 +258,6 @@ public class HeryshafBot extends TelegramLongPollingBot {
         editMessageText.setChatId(String.valueOf(chatId));
         editMessageText.setMessageId(messageId);
         return editMessageText;
-    }
-
-    //      +--------------------sec (0 - 59)
-    //      |  +---------------- minute (0 - 59)
-    //      |  |  +------------- hour (0 - 23)
-    //      |  |  |  +---------- day of month (1 - 31)
-    //      |  |  |  |  +------- month (1 - 12)
-    //      |  |  |  |  |  +---- day of week (0 - 6) (Sunday=0 or 7)
-    //      |  |  |  |  |  |
-    //      *  *  *  *  *  *  command to be executed
-    @Scheduled(cron = "${bot.reminder.mes.date}", zone = "Europe/Moscow")
-    private void sendReminderMessage() throws TelegramApiException {
-        Iterable<UserData> users = userRepository.findAll();
-        for (UserData user : users) {
-            SendMessage sendMessage = getSendMessage(user.getChatId());
-            sendMessage.setText(String.format("Привет, как дела? Поедешь на рыбалку завтра? %s%s",
-                    Emoji.SLIGHTLY_SMILING_FACE,
-                    Emoji.FISH
-            ));
-
-            execute(sendMessage);
-            waitFishingAnswerTimer = new Date();
-        }
     }
 
     private void helpCommandHandler(Message message) throws TelegramApiException {
@@ -398,7 +413,7 @@ public class HeryshafBot extends TelegramLongPollingBot {
         SendMessage sendMessage = getSendMessage(message.getChatId());
         String phrase = message.getText().toLowerCase();
 
-        if ((new Date()).getTime() - waitFishingAnswerTimer.getTime() < (1000 * 60 * 2 * 60)) {
+        if (expectation.equals(FISHING)) {
             if (Phrase.POSITIVE.get().contains(phrase)) {
                 sendMessage.setText(String.format("Отлично, жду результатов%s%s%s",
                         Emoji.GRINNING_FACE,
