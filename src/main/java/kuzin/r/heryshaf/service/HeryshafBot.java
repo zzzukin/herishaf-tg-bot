@@ -28,11 +28,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static kuzin.r.heryshaf.consts.Expectation.*;
 
@@ -87,25 +87,32 @@ public class HeryshafBot extends TelegramLongPollingBot {
             switch (message.getText()) {
                 case "/start":
                     startCommandHandler(message);
-                    break;
+                    return;
                 case "/help":
                     helpCommandHandler(message);
-                    break;
+                    return;
                 case "/weather":
                     weatherCommandHandler(message);
-                    break;
+                    return;
                 case "/result":
                     resultCommandHandler(message);
-                    break;
+                    return;
                 case "/about":
                     aboutCommandHandler(message);
-                    break;
+                    return;
                 default:
                     phraseHandler(message);
+                    return;
             }
         }
 
-        if (expectation.equals(LOCATION)) {
+        if (expectation.equals(USER_LOCATION)) {
+            if (update.hasMessage() && message.getLocation() != null) {
+                userLocationHandler(message);
+            }
+        }
+
+        if (expectation.equals(RESULT_LOCATION)) {
             if (update.hasMessage() && message.getLocation() != null) {
                 resultLocationHandler(message);
             }
@@ -136,7 +143,9 @@ public class HeryshafBot extends TelegramLongPollingBot {
                         Emoji.PAPERCLIP
                 ));
 
-                updateData(getWeatherData());
+                UserData user = userRepository.findById(callbackQuery.getMessage().getChatId())
+                        .orElseThrow(() -> new RuntimeException("Can`t update weather for user. User not found!"));
+                updateData(getWeatherData(user.getLongitude(), user.getLatitude()));
                 WeatherData data = loadData();
                 data.setResult(result.getText());
                 String author = callbackQuery.getMessage().getChat().getFirstName();
@@ -145,10 +154,28 @@ public class HeryshafBot extends TelegramLongPollingBot {
                 saveData(data);
 
                 execute(editMessageText);
-                expectation = LOCATION;
+                expectation = RESULT_LOCATION;
                 break;
             }
         }
+    }
+
+    private void userLocationHandler(Message message) throws TelegramApiException {
+        Location location = message.getLocation();
+        UserData user = userRepository.findById(message.getChatId()).orElseGet(() -> getUserFromChat(message.getChat()));
+        user.setLatitude(location.getLatitude());
+        user.setLongitude(location.getLongitude());
+
+        log.info("Add user {} location: {}; {}", user.getFirstName(), user.getLongitude(), user.getLatitude());
+        userRepository.save(user);
+
+        SendMessage sendMessage = getSendMessage(message.getChatId());
+        sendMessage.setText(String.format("Хорошо, %s, я запомнил%s",
+                message.getChat().getFirstName(),
+                Emoji.WINKING_FACE
+        ));
+
+        execute(sendMessage);
     }
 
     private void resultLocationHandler(Message message) throws TelegramApiException {
@@ -172,7 +199,10 @@ public class HeryshafBot extends TelegramLongPollingBot {
     @Scheduled(fixedDelay = 1000 * 60 * 60)
     public void updateDataBySchedule() throws IOException {
         log.info("Update data by scheduler {}", new Date());
-        updateData(getWeatherData());
+        Iterable<UserData> users = userRepository.findAll();
+        for (UserData user : users) {
+            updateData(getWeatherData(user.getLongitude(), user.getLatitude()));
+        }
     }
 
     //      +--------------------sec (0 - 59)
@@ -209,10 +239,9 @@ public class HeryshafBot extends TelegramLongPollingBot {
         }
     }
 
-    @Transactional
-    private WeatherData getWeatherData() throws IOException {
+    private WeatherData getWeatherData(Double longitude, Double latitude) throws IOException {
         log.info("Get weather data from: {}", weatherService.getResource());
-        JSONObject json = weatherService.getWeather();
+        JSONObject json = weatherService.getWeather(longitude, latitude);
         log.info("Weather data: {}", json);
         ObjectMapper mapper = new ObjectMapper();
         OpenWeatherMap openWeatherMap = mapper.readValue(json.toString(), OpenWeatherMap.class);
@@ -303,16 +332,20 @@ public class HeryshafBot extends TelegramLongPollingBot {
 
     private void registerUser(Chat chat) {
         if (!userRepository.findById(chat.getId()).isPresent()) {
-            UserData userData = new UserData();
-            userData.setChatId(chat.getId());
-            userData.setFirstName(chat.getFirstName());
-            userData.setLastName(chat.getLastName());
-            userData.setName(chat.getUserName());
-            userData.setRegisterDate(new Date());
-
-            log.info("New user registered: {}", userData);
-            userRepository.save(userData);
+            UserData user = getUserFromChat(chat);
+            log.info("New user registered: {}", user);
+            userRepository.save(user);
         }
+    }
+
+    private UserData getUserFromChat(Chat chat) {
+        UserData user = new UserData();
+        user.setChatId(chat.getId());
+        user.setFirstName(chat.getFirstName());
+        user.setLastName(chat.getLastName());
+        user.setName(chat.getUserName());
+        user.setRegisterDate(new Date());
+        return user;
     }
 
     private void weatherCommandHandler(Message message) throws TelegramApiException {
@@ -329,7 +362,10 @@ public class HeryshafBot extends TelegramLongPollingBot {
                         "<b>Давление:</b> %s гПа\n" +
                         "<b>Направление ветра:</b> %s\n" +
                         "<b>Скорость ветра:</b> %s м/с\n" +
-                        "<b>Уровень воды:</b> %s см(%s)\n",
+                        "<b>Уровень воды:</b> %s см(%s)\n\n" +
+                        "Чтобы я паказал тебе погоду в твоем регионе, " +
+                        "укажи мне, пожалуйста, свое местоположение%s " +
+                        "(нажми %s снизу справа и выбери 'location')",
                 message.getChat().getFirstName(),
                 Emoji.SUN_BEHIND_CLOUD,
                 openWeatherMap.getSys().getCountry(),
@@ -341,11 +377,14 @@ public class HeryshafBot extends TelegramLongPollingBot {
                 openWeatherMap.getWind().getDeg(),
                 openWeatherMap.getWind().getSpeed(),
                 waterLevel.getLevel(),
-                waterLevel.getDiff()
+                waterLevel.getDiff(),
+                Emoji.WINKING_FACE,
+                Emoji.PAPERCLIP
         ));
         sendMessage.setParseMode(ParseMode.HTML);
 
         execute(sendMessage);
+        expectation = USER_LOCATION;
     }
 
     private void resultCommandHandler(Message message) throws TelegramApiException {

@@ -1,7 +1,8 @@
 package kuzin.r.heryshaf.consts;
 
 public enum Expectation {
-    LOCATION,
+    USER_LOCATION,
+    RESULT_LOCATION,
     FISHING,
     NOTHING
 }

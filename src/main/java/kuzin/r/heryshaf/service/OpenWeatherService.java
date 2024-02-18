@@ -19,24 +19,21 @@ import java.nio.charset.StandardCharsets;
 public class OpenWeatherService implements WeatherService {
 
     private final String key;
-    private final String city;
     private final String url;
     private final String lang;
 
     public OpenWeatherService(
             @Value("${weather.url}") String url,
-            @Value("${weather.city}") String city,
             @Value("${weather.key}") String key,
             @Value("${weather.lang}") String lang) {
         this.key = key;
-        this.city = city;
         this.url = url;
         this.lang = lang;
     }
 
     @Override
-    public JSONObject getWeather() {
-        String requestedUrl = String.format(url, city, key, lang);
+    public JSONObject getWeather(Double longitude, Double latitude) {
+        String requestedUrl = String.format(url, longitude, latitude, lang, key);
         String response = getUrlContent(requestedUrl);
         return new JSONObject(response);
     }

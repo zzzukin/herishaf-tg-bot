@@ -22,4 +22,8 @@ public class UserData {
     String name;
 
     Date registerDate;
+
+    Double longitude;
+
+    Double latitude;
 }
