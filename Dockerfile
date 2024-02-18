@@ -1,5 +1,5 @@
 FROM maven:3.8.6-openjdk-8 AS build
-COPY ..
+COPY . .
 RUN mvn clean package -DskipTests
 
 FROM openjdk:8-jdk-slim
