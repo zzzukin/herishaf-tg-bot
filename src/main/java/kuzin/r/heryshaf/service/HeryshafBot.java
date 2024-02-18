@@ -13,6 +13,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -201,6 +202,9 @@ public class HeryshafBot extends TelegramLongPollingBot {
         log.info("Update data by scheduler {}", new Date());
         Iterable<UserData> users = userRepository.findAll();
         for (UserData user : users) {
+            if (user.getLongitude() == null || user.getLatitude() == null) {
+                continue;
+            }
             updateData(getWeatherData(user.getLongitude(), user.getLatitude()));
         }
     }
